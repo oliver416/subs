@@ -1,0 +1,47 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+    <link rel="stylesheet" href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}">
+</head>
+<body>
+    <header>
+        <div class="navbar navbar-dark bg-dark shadow-sm">
+          <div class="container d-flex justify-content-between">
+            <a href="/" class="navbar-brand d-flex align-items-center">
+              <strong>Subtitles</strong>
+            </a>
+          </div>
+            <div class="text-white mr-5 align-middle">User: <span class="font-weight-bolder">{{ username }}</span></div>
+            <a href="/accounts/logout" class="btn btn-secondary">Log out</a>
+        </div>
+    </header>
+
+    <main role="main">
+        <section>
+            <div class="input-group col-lg-8 ml-auto mr-auto pt-3 bg-light">
+                <div class="custom-file">
+                  <form action="/upload_file/" method="post" enctype="multipart/form-data">{% csrf_token %}
+                    <input type="file" class="custom-file-input" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04">
+                  </form>
+                  <label class="custom-file-label" for="inputGroupFile04">Choose file</label>
+                </div>
+                <div class="input-group-append">
+                  <button class="btn btn-primary" type="button" id="inputGroupFileAddon04">Upload</button>
+                </div>
+            </div>
+            <div class="col-lg-8 ml-auto mr-auto pt-3 pb-1 bg-light text-center align-middle" id="canvas">
+              <div class="form-group">
+                <label for="textArea">Open a text file or paste some text below.</label>
+                <textarea class="form-control" id="textArea" rows="20"></textarea>
+                <button class="btn btn-primary mt-3" id="textAreaButton">Upload</button>
+              </div>
+            </div>
+        </section>
+    </main>
+    <script src="{% static 'main/js/profile.js' %}"></script>
+</body>
+</html>
