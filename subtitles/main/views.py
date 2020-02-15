@@ -6,7 +6,7 @@ from django.core.files.storage import FileSystemStorage
 from .modules.parser import parse_text
 from django.contrib.auth.models import User
 from .models import UserVocabulary, Vocabulary
-from django.core.exceptions import ObjectDoesNotExist
+from django.db.utils import IntegrityError
 
 STORAGE_DIR = './storage/'
 
@@ -55,6 +55,10 @@ def touch_word(request, word):
     if request.method == 'GET':
         username = request.user.username
         user_id = User.objects.get(username=username).id
+    try:
+        Vocabulary.objects.get_or_create(user_id=user_id, word=word)
+    except IntegrityError:
+        pass
     # TODO: crutch
     try:
         UserVocabulary.objects.get(user_id=user_id, word=word).delete()
@@ -69,4 +73,4 @@ def get_text(request):
     if request.method == 'POST':
         text = request.POST['text']
         words = parse_text(text, isfile=False)
-        return JsonResponse({'ok': str(words)})
+        return JsonResponse({'words': words})
