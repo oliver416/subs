@@ -50,10 +50,11 @@ def parse_text(path, isfile=True):
         return words
 
     def get_unique_words(word_list):
-        unique_words = set(word_list)
+        words_lowercase = [x.lower() for x in word_list]
+        unique_words = set(words_lowercase)
         word_frequency = list()
         for unique_word in unique_words:
-            word_frequency.append((unique_word, word_list.count(unique_word)))
+            word_frequency.append((unique_word, words_lowercase.count(unique_word)))
         word_frequency.sort(key=lambda i: i[1])
         return word_frequency
 

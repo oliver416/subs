@@ -13,121 +13,177 @@ function getCookie(name) {
     }
   };
 
-function touchWord(callback, word){
+function getRequest(callback, url, context){
     let xhr = new XMLHttpRequest();
-        xhr.addEventListener("load", function (e) {
-            if (xhr.status === 200){
-                return callback(xhr.response)
-            }else {
-                return 'Error'
-            }
-        });
-        xhr.open("GET", '/touch/' + word, true);
-        xhr.send(null);
+    xhr.addEventListener("load", function (e) {
+        if (xhr.status === 200){
+            return callback(xhr.response, context)
+        }else {
+            return 'Error'
+        }
+    });
+    xhr.open("GET", url, true);
+    xhr.send(null);
+};
+
+function postRequest(callback, url, context){
+    let xhr = new XMLHttpRequest();
+    let formData = new FormData();
+    xhr.addEventListener("load", function (e) {
+        if (xhr.status === 200){
+            return callback(xhr.response, context)
+        }else {
+            return 'Error'
+        }
+    });
+    if (typeof context === 'object' && typeof context[Symbol.iterator] === 'function'){
+        for (let data of context){
+            formData.append(data[0], data[1]);   
+        }
+    }
+    xhr.open("POST", url, true);
+    xhr.send(formData);
 };
 
 function touchWordCallback(response){
     let word = JSON.parse(response)['word'];
     let exists = JSON.parse(response)['exists'];
-    let button = document.getElementById(word);
+    let buttonGroup = document.getElementById(word);
+    let buttonWord = buttonGroup.getElementsByClassName('word-button')[0];
+    let buttonDropdown = buttonGroup.getElementsByClassName('button-dropdown')[0];
     if (exists === true){
-        button.classList.remove('btn-danger');
-        button.classList.add('btn-success');
+        buttonWord.classList.remove('btn-danger');
+        buttonWord.classList.add('btn-success');
+        buttonDropdown.classList.remove('btn-danger');
+        buttonDropdown.classList.add('btn-success');
     }else{
-        button.classList.remove('btn-success');
-        button.classList.add('btn-danger');
+        buttonWord.classList.remove('btn-success');
+        buttonWord.classList.add('btn-danger');
+        buttonDropdown.classList.remove('btn-success');
+        buttonDropdown.classList.add('btn-danger');
+    }
+};
+
+function checkWordCallback(response, context){
+    // let button = document.createElement('button');
+    let word = context[0];
+    let frequency = context[1];
+    let canvas = document.getElementById('canvas');
+    let buttonGroup = document.createElement('div');
+    buttonGroup.id = word;
+    buttonGroup.className = 'btn-group p-3';
+    canvas.appendChild(buttonGroup);
+    let button = document.createElement('button');
+    // TODO: It's a sort of bullshit
+    button.innerText = word + ' ' + frequency;
+    let dropdownStyle = ''
+    if (JSON.parse(response)['exists'] === true){
+        button.className = 'btn btn-success word-button';
+        dropdownStyle = 'btn-success';
+    }else{
+        button.className = 'btn btn-danger word-button';
+        dropdownStyle = 'btn-danger';
+    }
+    // button.id = word;
+    // buttonGroup.appendChild(button);
+    buttonGroup.innerHTML = `
+        ` + button.outerHTML + `
+        <button type="button" class="btn ` + dropdownStyle + ` dropdown-toggle dropdown-toggle-split button-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <div class="dropdown-menu">
+          <button class="dropdown-item bg-warning button-name">Mark as a Name</button>
+          <button class="dropdown-item bg-secondary button-mistake">Mark as a mistake</button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item">Translate</button>
+          <button class="dropdown-item">Listen a translation</button>
+        </div>
+    `
+    buttonGroup.getElementsByClassName('word-button')[0].addEventListener('click', wordButtonClick);
+};
+
+function saveFileCallback(data){
+    let words = JSON.parse(data)['words'];
+    let div = document.getElementById('canvas');
+    div.innerHTML = '';
+    // TODO: crutch
+    for (let word in words){
+        let caption = words[word][0];
+        let frequency = words[word][1];
+        getRequest(checkWordCallback, '/check/' + caption, [caption, frequency]);
     }
 };
 
 function wordButtonClick(e){
     let word = e.target.innerText.split(' ')[0];
-    touchWord(touchWordCallback, word);
-    // e.target.remove();
+    getRequest(touchWordCallback, '/touch/' + word);
 };
 
 function uploadFile(){
-    saveFile(saveFileCallback);
+    let file = document.getElementById("inputGroupFile04").files[0];
+    let context = [['file', file] , ['csrfmiddlewaretoken', getCookie('csrftoken')]]; 
+    postRequest(saveFileCallback, '/upload_file/', context);
 
-    function checkWord(callback, word, frequency){
-        let xhr = new XMLHttpRequest();
-        xhr.addEventListener("load", function (e) {
-            if (xhr.status === 200){
-                return callback(xhr.response, word, frequency)
-            }else {
-                return 'Error'
-            }
-        });
-        xhr.open("GET", '/check/' + word, true);
-        xhr.send(null);
-    };
+    // function checkWordCallback(response, context){
+    //     // let button = document.createElement('button');
+    //     let word = context[0];
+    //     let frequency = context[1];
+    //     let canvas = document.getElementById('canvas');
+    //     let buttonGroup = document.createElement('div');
+    //     buttonGroup.id = word;
+    //     buttonGroup.className = 'btn-group p-3';
+    //     canvas.appendChild(buttonGroup);
+    //     let button = document.createElement('button');
+    //     // TODO: It's a sort of bullshit
+    //     button.innerText = word + ' ' + frequency;
+    //     let dropdownStyle = ''
+    //     if (JSON.parse(response)['exists'] === true){
+    //         button.className = 'btn btn-success word-button';
+    //         dropdownStyle = 'btn-success';
+    //     }else{
+    //         button.className = 'btn btn-danger word-button';
+    //         dropdownStyle = 'btn-danger';
+    //     }
+    //     // button.id = word;
+    //     // buttonGroup.appendChild(button);
+    //     buttonGroup.innerHTML = `
+    //         ` + button.outerHTML + `
+    //         <button type="button" class="btn ` + dropdownStyle + ` dropdown-toggle dropdown-toggle-split button-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    //           <span class="sr-only">Toggle Dropdown</span>
+    //         </button>
+    //         <div class="dropdown-menu">
+    //           <button class="dropdown-item bg-warning button-name">Mark as a Name</button>
+    //           <button class="dropdown-item bg-secondary button-mistake">Mark as a mistake</button>
+    //           <div class="dropdown-divider"></div>
+    //           <button class="dropdown-item">Translate</button>
+    //           <button class="dropdown-item">Listen a translation</button>
+    //         </div>
+    //     `
+    //     buttonGroup.getElementsByClassName('word-button')[0].addEventListener('click', wordButtonClick);
+    // };
 
-    function checkWordCallback(response, word, frequency){
-        let button = document.createElement('button');
-        let div = document.getElementById('canvas');
-        button.innerText = word + ' ' + frequency;
-        if (JSON.parse(response)['exists'] === true){
-            button.className = 'btn btn-success m-3 word-button';
-        }else{
-            button.className = 'btn btn-danger m-3 word-button';
-        }
-        button.id = word;
-        div.appendChild(button);
-        button.addEventListener('click', wordButtonClick);
-    };
-
-    function saveFileCallback(data){
-        let words = JSON.parse(data)['words'];
-        let div = document.getElementById('canvas');
-        div.innerHTML = '';
-        // TODO: crutch
-        for (let word in words){
-            let caption = words[word][0]
-            let frequency = words[word][1]
-            checkWord(checkWordCallback, caption, frequency);
-        }
-    };
-
-    function saveFile(callback){
-        let file = document.getElementById("inputGroupFile04").files[0];  
-        let xhr = new XMLHttpRequest();
-        let formData = new FormData();
-        xhr.addEventListener("load", function (e) {
-            if (xhr.status === 200){
-                return callback(xhr.response)
-            }else {
-                return 'Error'
-            }
-        });
-        formData.append("file", file);
-        formData.append("csrfmiddlewaretoken", getCookie('csrftoken'));
-        xhr.open("POST", '/upload_file/', true);
-        xhr.send(formData);
-    };
+    // function saveFileCallback(data){
+    //     let words = JSON.parse(data)['words'];
+    //     let div = document.getElementById('canvas');
+    //     div.innerHTML = '';
+    //     // TODO: crutch
+    //     for (let word in words){
+    //         let caption = words[word][0];
+    //         let frequency = words[word][1];
+    //         getRequest(checkWordCallback, '/check/' + caption, [caption, frequency]);
+    //     }
+    // };
 };
 
 function uploadText(){
-    getText(getTextCallback);
+    let text = document.getElementById('textArea').value;
+    let context = [['text', text] , ['csrfmiddlewaretoken', getCookie('csrftoken')]];
+    // postRequest(getTextCallback, '/get_text/', context);
+    postRequest(saveFileCallback, '/get_text/', context);
     
-    function getTextCallback(response){
-        document.getElementById('textArea').value = response;
-    };
-
-    function getText(callback){
-        let text = document.getElementById('textArea').value;
-        let xhr = new XMLHttpRequest();
-        let formData = new FormData();
-        xhr.addEventListener("load", function (e) {
-            if (xhr.status === 200){
-                return callback(xhr.response)
-            }else {
-                return 'Error'
-            }
-        });
-        formData.append('text', text);
-        formData.append("csrfmiddlewaretoken", getCookie('csrftoken'));
-        xhr.open("POST", '/get_text/', true);
-        xhr.send(formData);
-    };
+    // function getTextCallback(response){
+    //     document.getElementById('textArea').value = response;
+    // };
 };
 
 let input = document.getElementById('inputGroupFile04');
@@ -139,4 +195,3 @@ uploadButton.addEventListener('click', uploadFile);
 
 let textAreaButton = document.getElementById('textAreaButton');
 textAreaButton.addEventListener('click', uploadText);
-// TODO: refactor js
