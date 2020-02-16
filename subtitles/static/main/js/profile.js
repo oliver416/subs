@@ -13,6 +13,10 @@ function getCookie(name) {
     }
   };
 
+function replaceAll(str, find, replace) {
+    return str.replace(new RegExp(find, 'g'), replace);
+}
+
 function getRequest(callback, url, context){
     let xhr = new XMLHttpRequest();
     xhr.addEventListener("load", function (e) {
@@ -93,14 +97,15 @@ function checkWordCallback(response, context){
         </button>
         <div class="dropdown-menu">
         <button class="dropdown-item button-translate">Translate</button>
-        <!--<button class="dropdown-item">Listen a translation</button>-->
-        <div class="dropdown-divider"></div>
+        <button class="dropdown-item bg-warning button-marker">Mark a word</button>
+        <!--<div class="dropdown-divider"></div>
         <button class="dropdown-item bg-warning button-name">Mark as a Name</button>
-        <button class="dropdown-item bg-secondary button-mistake">Mark as a mistake</button>
+        <button class="dropdown-item bg-secondary button-mistake">Mark as a mistake</button>-->
         </div>
     `
     buttonGroup.getElementsByClassName('word-button')[0].addEventListener('click', wordButtonClick);
     buttonGroup.getElementsByClassName('button-translate')[0].addEventListener('click', translateButtonClick);
+    buttonGroup.getElementsByClassName('button-marker')[0].addEventListener('click', markerButtonClick);
 };
 
 function saveFileCallback(data){
@@ -128,6 +133,8 @@ function uploadFile(){
 
 function uploadText(){
     let text = document.getElementById('textArea').value;
+    let textDisplay = document.getElementById('textDisplay');
+    textDisplay.innerText = text;
     let context = [['text', text] , ['csrfmiddlewaretoken', getCookie('csrftoken')]];
     postRequest(saveFileCallback, '/get_text/', context);
 };
@@ -141,6 +148,20 @@ function translateCallback(response){
     let container = document.getElementById('translation-id');
     let html = JSON.parse(response)['translation'];
     container.innerHTML = html;
+};
+
+function markerButtonClick(e){
+    let word = e.target.parentElement.parentElement.id;
+    let textDisplay = document.getElementById('textDisplay');
+    let text = textDisplay.innerHTML;
+    // text = text.replace('<span class="bg-warning">', '');
+    // text = text.replace('</span>', '');
+    // text = text.replace(word, '<span class="bg-warning">' + word + '</span>');
+    // TODO: crutch
+    text = replaceAll(text, '<span class="bg-warning">', '');
+    text = replaceAll(text,'</span>', '');
+    text = replaceAll(text, word, '<span class="bg-warning">' + word + '</span>');
+    textDisplay.innerHTML = text;
 };
 
 let input = document.getElementById('inputGroupFile04');
