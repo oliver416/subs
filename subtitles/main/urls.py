@@ -8,4 +8,5 @@ urlpatterns = [
     path('check/<str:word>', views.check_word),
     path('touch/<str:word>', views.touch_word),
     path('get_text/', views.get_text),
+    path('translate/<str:word>', views.translate),
 ]

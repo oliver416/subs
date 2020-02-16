@@ -92,14 +92,15 @@ function checkWordCallback(response, context){
           <span class="sr-only">Toggle Dropdown</span>
         </button>
         <div class="dropdown-menu">
-          <button class="dropdown-item bg-warning button-name">Mark as a Name</button>
-          <button class="dropdown-item bg-secondary button-mistake">Mark as a mistake</button>
-          <div class="dropdown-divider"></div>
-          <button class="dropdown-item">Translate</button>
-          <button class="dropdown-item">Listen a translation</button>
+        <button class="dropdown-item button-translate">Translate</button>
+        <!--<button class="dropdown-item">Listen a translation</button>-->
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item bg-warning button-name">Mark as a Name</button>
+        <button class="dropdown-item bg-secondary button-mistake">Mark as a mistake</button>
         </div>
     `
     buttonGroup.getElementsByClassName('word-button')[0].addEventListener('click', wordButtonClick);
+    buttonGroup.getElementsByClassName('button-translate')[0].addEventListener('click', translateButtonClick);
 };
 
 function saveFileCallback(data){
@@ -123,67 +124,23 @@ function uploadFile(){
     let file = document.getElementById("inputGroupFile04").files[0];
     let context = [['file', file] , ['csrfmiddlewaretoken', getCookie('csrftoken')]]; 
     postRequest(saveFileCallback, '/upload_file/', context);
-
-    // function checkWordCallback(response, context){
-    //     // let button = document.createElement('button');
-    //     let word = context[0];
-    //     let frequency = context[1];
-    //     let canvas = document.getElementById('canvas');
-    //     let buttonGroup = document.createElement('div');
-    //     buttonGroup.id = word;
-    //     buttonGroup.className = 'btn-group p-3';
-    //     canvas.appendChild(buttonGroup);
-    //     let button = document.createElement('button');
-    //     // TODO: It's a sort of bullshit
-    //     button.innerText = word + ' ' + frequency;
-    //     let dropdownStyle = ''
-    //     if (JSON.parse(response)['exists'] === true){
-    //         button.className = 'btn btn-success word-button';
-    //         dropdownStyle = 'btn-success';
-    //     }else{
-    //         button.className = 'btn btn-danger word-button';
-    //         dropdownStyle = 'btn-danger';
-    //     }
-    //     // button.id = word;
-    //     // buttonGroup.appendChild(button);
-    //     buttonGroup.innerHTML = `
-    //         ` + button.outerHTML + `
-    //         <button type="button" class="btn ` + dropdownStyle + ` dropdown-toggle dropdown-toggle-split button-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    //           <span class="sr-only">Toggle Dropdown</span>
-    //         </button>
-    //         <div class="dropdown-menu">
-    //           <button class="dropdown-item bg-warning button-name">Mark as a Name</button>
-    //           <button class="dropdown-item bg-secondary button-mistake">Mark as a mistake</button>
-    //           <div class="dropdown-divider"></div>
-    //           <button class="dropdown-item">Translate</button>
-    //           <button class="dropdown-item">Listen a translation</button>
-    //         </div>
-    //     `
-    //     buttonGroup.getElementsByClassName('word-button')[0].addEventListener('click', wordButtonClick);
-    // };
-
-    // function saveFileCallback(data){
-    //     let words = JSON.parse(data)['words'];
-    //     let div = document.getElementById('canvas');
-    //     div.innerHTML = '';
-    //     // TODO: crutch
-    //     for (let word in words){
-    //         let caption = words[word][0];
-    //         let frequency = words[word][1];
-    //         getRequest(checkWordCallback, '/check/' + caption, [caption, frequency]);
-    //     }
-    // };
 };
 
 function uploadText(){
     let text = document.getElementById('textArea').value;
     let context = [['text', text] , ['csrfmiddlewaretoken', getCookie('csrftoken')]];
-    // postRequest(getTextCallback, '/get_text/', context);
     postRequest(saveFileCallback, '/get_text/', context);
-    
-    // function getTextCallback(response){
-    //     document.getElementById('textArea').value = response;
-    // };
+};
+
+function translateButtonClick(e){
+    let word = e.target.parentElement.parentElement.id;
+    getRequest(translateCallback, '/translate/' + word)
+};
+
+function translateCallback(response){
+    let container = document.getElementById('translation-id');
+    let html = JSON.parse(response)['translation'];
+    container.innerHTML = html;
 };
 
 let input = document.getElementById('inputGroupFile04');
