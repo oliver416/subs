@@ -2,7 +2,7 @@ from re import search
 
 STOP_ROWS = ['-->', '\n']
 STOP_WORDS = ['-', '\n', '&', '']
-STOP_PUNCTUATION = ['\n', '.', '?', '!', ',', ':', '\"', '&']
+STOP_PUNCTUATION = ['\n', '.', '?', '!', ',', ':', '\"', '&', '#']
 APOSTROPHE = '\''
 
 
