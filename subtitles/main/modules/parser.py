@@ -2,7 +2,7 @@ from re import search
 
 STOP_ROWS = ['-->', '\n']
 STOP_WORDS = ['-', '\n', '&', '']
-STOP_PUNCTUATION = ['\n', '.', '?', '!', ',', ':', '\"', '&', '#']
+STOP_PUNCTUATION = ['\n', '.', '?', '!', ',', ':', '\"', '&', '#', ';']
 APOSTROPHE = '\''
 
 
@@ -13,11 +13,12 @@ def parse_text(path, isfile=True):
         if isfile is True:
             file = open(str(data), 'r')
             for row in file:
-                split_row = row.split(' ')
-                rows.append(split_row)
+                for split in row.split(' '):
+                    rows.append(split.split('\n'))
             file.close()
         else:
-            rows.append(data.split(' '))
+            for split in data.split(' '):
+                rows.append(split.split('\n'))
         clear_rows = list()
         for row in rows:
             clear_rows.append(row)

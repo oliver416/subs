@@ -23,7 +23,9 @@ def index(request):
 
 def profile(request):
     username = request.user.username
-    return render(request, 'main/profile.html', {'username': username})
+    user_id = User.objects.get(username=username).id
+    words_count = UserVocabulary.objects.filter(user_id__id__contains=user_id).count()
+    return render(request, 'main/profile.html', {'username': username, 'words_count': words_count})
 
 
 def upload_file(request):
@@ -49,12 +51,19 @@ def check_word(request, word):
         user_id = User.objects.get(username=username).id
     #  TODO: crutch
     try:
-        UserVocabulary.objects.get(user_id=user_id, word=word).word
+        word = UserVocabulary.objects.get(user_id=user_id, word=word).word
         response = True
+        return JsonResponse({'exists': response, 'word': word})
     except UserVocabulary.DoesNotExist:
-        # TODO: save to vocabulary
+        pass
+    try:
+        word = UserVocabulary.objects.get(user_id=user_id, word=word.replace(word[0], word[0].upper())).word
+        response = True
+        return JsonResponse({'exists': response, 'word': word})
+    except UserVocabulary.DoesNotExist:
         response = False
-    return JsonResponse({'exists': response})
+        word = ''
+        return JsonResponse({'exists': response, 'word': word})
 
 
 def touch_word(request, word):

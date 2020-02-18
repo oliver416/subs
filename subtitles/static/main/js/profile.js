@@ -52,7 +52,9 @@ function postRequest(callback, url, context){
 function touchWordCallback(response){
     let word = JSON.parse(response)['word'];
     let exists = JSON.parse(response)['exists'];
-    let buttonGroup = document.getElementById(word);
+    let newWords = document.getElementsByClassName('newWords')[0];
+    let userWords = document.getElementsByClassName('userWords')[0];
+    let buttonGroup = document.getElementById(word.toLowerCase());
     let buttonWord = buttonGroup.getElementsByClassName('word-button')[0];
     let buttonDropdown = buttonGroup.getElementsByClassName('button-dropdown')[0];
     if (exists === true){
@@ -60,22 +62,33 @@ function touchWordCallback(response){
         buttonWord.classList.add('btn-success');
         buttonDropdown.classList.remove('btn-danger');
         buttonDropdown.classList.add('btn-success');
+        newWords.innerText = Number(newWords.innerText) - 1;
+        userWords.innerText = Number(userWords.innerText) + 1;
     }else{
         buttonWord.classList.remove('btn-success');
         buttonWord.classList.add('btn-danger');
         buttonDropdown.classList.remove('btn-success');
         buttonDropdown.classList.add('btn-danger');
+        newWords.innerText = Number(newWords.innerText) + 1;
+        userWords.innerText = Number(userWords.innerText) - 1;
     }
 };
 
 function checkWordCallback(response, context){
     // let button = document.createElement('button');
-    let word = context[0];
+    let word = '';
+    if (JSON.parse(response)['word'] !== ''){
+        word = JSON.parse(response)['word'];
+    }else{
+        word = context[0];
+    }
+    // let word = context[0];
     let frequency = context[1];
     let canvas = document.getElementById('canvas');
     let buttonGroup = document.createElement('div');
-    buttonGroup.id = word;
-    buttonGroup.className = 'btn-group p-3';
+    // buttonGroup.id = word;
+    buttonGroup.id = context[0];
+    buttonGroup.className = 'btn-group p-3 buttonGroup';
     canvas.appendChild(buttonGroup);
     let button = document.createElement('button');
     // TODO: It's a sort of bullshit
@@ -87,6 +100,8 @@ function checkWordCallback(response, context){
     }else{
         button.className = 'btn btn-danger word-button';
         dropdownStyle = 'btn-danger';
+        let newWords = document.getElementsByClassName('newWords')[0];
+        newWords.innerText = Number(newWords.innerText) + 1;
     }
     // button.id = word;
     // buttonGroup.appendChild(button);
@@ -98,19 +113,24 @@ function checkWordCallback(response, context){
         <div class="dropdown-menu">
         <button class="dropdown-item button-translate">Translate</button>
         <button class="dropdown-item bg-warning button-marker">Mark a word</button>
-        <!--<div class="dropdown-divider"></div>
-        <button class="dropdown-item bg-warning button-name">Mark as a Name</button>
-        <button class="dropdown-item bg-secondary button-mistake">Mark as a mistake</button>-->
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item bg-info button-name">Mark as a Name</button>
+        <!--<button class="dropdown-item bg-secondary button-mistake">Mark as a mistake</button>-->
         </div>
     `
     buttonGroup.getElementsByClassName('word-button')[0].addEventListener('click', wordButtonClick);
     buttonGroup.getElementsByClassName('button-translate')[0].addEventListener('click', translateButtonClick);
     buttonGroup.getElementsByClassName('button-marker')[0].addEventListener('click', markerButtonClick);
+    buttonGroup.getElementsByClassName('button-name')[0].addEventListener('click', nameButtonClick);
 };
 
 function saveFileCallback(data){
     let words = JSON.parse(data)['words'];
     let div = document.getElementById('canvas');
+    let allWords = document.getElementsByClassName('allWords')[0];
+    allWords.innerText = words.length;
+    let newWords = document.getElementsByClassName('newWords')[0];
+    newWords.innerText = '0';
     div.innerHTML = '';
     // TODO: crutch
     for (let word in words){
@@ -164,6 +184,26 @@ function markerButtonClick(e){
     textDisplay.innerHTML = text;
 };
 
+function nameButtonClick(e){
+    let word = e.target.parentElement.parentElement.id;
+    word = word.replace(word[0], word[0].toUpperCase())
+    getRequest(touchWordCallback, '/touch/' + word);
+};
+
+function hideWords(e){
+    if (e.target.localName === 'label'){
+        if (e.target.classList.contains('active') === true){
+            let buttons = document.getElementsByClassName('buttonGroup');
+            let i = 0;
+            for (let button of buttons){
+                i += 1;
+                console.log(i);
+            }
+            // console.log(buttons);
+        }
+    }
+};
+
 let input = document.getElementById('inputGroupFile04');
 // TODO: to change stranges id
 input.addEventListener('change', showFileName);
@@ -173,3 +213,6 @@ uploadButton.addEventListener('click', uploadFile);
 
 let textAreaButton = document.getElementById('textAreaButton');
 textAreaButton.addEventListener('click', uploadText);
+
+let hideWordsButton = document.getElementsByClassName('hideWords')[0];
+hideWordsButton.addEventListener('click', hideWords);

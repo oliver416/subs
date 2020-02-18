@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <title>Profile</title>
     <link rel="stylesheet" href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/profile.css' %}">
 </head>
 <body>
     <header>
@@ -14,6 +15,11 @@
             <a href="/" class="navbar-brand d-flex align-items-center">
               <strong>Subtitles</strong>
             </a>
+            <div class="btn-group-toggle hideWords" data-toggle="buttons">
+              <label class="btn btn-light">
+                <input type="checkbox" checked>Hide known words (doesn't work)
+              </label>
+            </div>
           </div>
             <div class="text-white mr-5 align-middle">User: <span class="font-weight-bolder">{{ username }}</span></div>
             <a href="/accounts/logout" class="btn btn-secondary">Log out</a>
@@ -22,39 +28,42 @@
 
     <main role="main">
         <section>
-          <div class="container">
+          <!-- <div class="container"> -->
 
-          <div class="row">
-            <div class="col-lg-8 pt-3" id="textDisplay"></div>
-            <div class="col-lg-4 ml-auto mr-auto pt-3 bg-light">
-
-            <div class="input-group">
-                <div class="custom-file">
-                  <form action="/upload_file/" method="post" enctype="multipart/form-data">{% csrf_token %}
-                    <input type="file" class="custom-file-input" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04">
-                  </form>
-                  <label class="custom-file-label" for="inputGroupFile04">Choose file</label>
+          <div class="row bg-light m-0">
+              <div class="col-lg-3 ml-auto mr-auto pt-3 bg-light">
+                <div class="input-group">
+                    <div class="custom-file">
+                      <form action="/upload_file/" method="post" enctype="multipart/form-data">{% csrf_token %}
+                        <input type="file" class="custom-file-input" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04">
+                      </form>
+                      <label class="custom-file-label" for="inputGroupFile04">Choose file</label>
+                    </div>
+                    <div class="input-group-append">
+                      <button class="btn btn-primary" type="button" id="inputGroupFileAddon04">Upload</button>
+                    </div>
                 </div>
-                <div class="input-group-append">
-                  <button class="btn btn-primary" type="button" id="inputGroupFileAddon04">Upload</button>
+                <div class="stats pt-3">
+                  <div>Words in user vocabulary: <span class="text-primary font-weight-bold userWords">{{ words_count }}</span></div>
+                  <div>Words in text: <span class="text-dark font-weight-bold allWords">0</span></div>
+                  <div>New words in text: <span class="text-danger font-weight-bold newWords">0</span></div>
                 </div>
-            </div>
+              </div>
 
-            <div class="form-group pt-3">
-              <label for="textArea">Open a text file or paste some text below.</label>
-              <textarea class="form-control" id="textArea" rows="15"></textarea>
-              <button class="btn btn-primary mt-3" id="textAreaButton">Upload this text</button>
-            </div>
-            </div>
-            </div>
-            
-            <div class="row">
-              <div class="col-lg-8 ml-auto mr-auto pb-1 text-center align-middle" id="canvas">
+              <div class="form-group col-lg-8 ml-auto mr-auto pt-3 bg-light">
+                <label for="textArea">Open a text file or paste some text below.</label>
+                <textarea class="form-control" id="textArea" rows="3"></textarea>
+                <button class="btn btn-primary mt-3" id="textAreaButton">Upload this text</button>
               </div>
-              <div class="col-lg-4 bg-light" id="translation-id">
-              </div>
-            </div>
+              <!-- </div> -->
           </div>
+            
+          <div class="row m-0">
+            <div class="col-lg-4 pt-3 h-72vh overflow-auto" id="textDisplay"></div>
+            <div class="col-lg-4 ml-auto mr-auto pb-1 text-center align-middle h-72vh overflow-auto" id="canvas"></div>
+            <div class="col-lg-4 h-72vh overflow-auto" id="translation-id"></div>
+          </div>
+          <!-- </div> -->
         </section>
     </main>
     <script src="{% static 'main/js/profile.js' %}"></script>
