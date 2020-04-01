@@ -1,3 +1,5 @@
+let successButtons = [];
+
 function showFileName(e){
     let fileName = e.target.files[0].name;
     let label = document.getElementsByClassName('custom-file-label')[0];
@@ -16,6 +18,12 @@ function getCookie(name) {
 function replaceAll(str, find, replace) {
     return str.replace(new RegExp(find, 'g'), replace);
 }
+
+function toUppercaseFirst(str) {
+    if (!str) return str;
+  
+    return str[0].toUpperCase() + str.slice(1);
+  }
 
 function getRequest(callback, url, context){
     let xhr = new XMLHttpRequest();
@@ -112,15 +120,14 @@ function checkWordCallback(response, context){
         </button>
         <div class="dropdown-menu">
         <button class="dropdown-item button-translate">Translate</button>
-        <button class="dropdown-item bg-warning button-marker">Mark a word</button>
         <div class="dropdown-divider"></div>
         <button class="dropdown-item bg-info button-name">Mark as a Name</button>
         <!--<button class="dropdown-item bg-secondary button-mistake">Mark as a mistake</button>-->
         </div>
     `
     buttonGroup.getElementsByClassName('word-button')[0].addEventListener('click', wordButtonClick);
+    buttonGroup.getElementsByClassName('button-dropdown')[0].addEventListener('click', markerButtonClick);
     buttonGroup.getElementsByClassName('button-translate')[0].addEventListener('click', translateButtonClick);
-    buttonGroup.getElementsByClassName('button-marker')[0].addEventListener('click', markerButtonClick);
     buttonGroup.getElementsByClassName('button-name')[0].addEventListener('click', nameButtonClick);
 };
 
@@ -143,6 +150,7 @@ function saveFileCallback(data){
 function wordButtonClick(e){
     let word = e.target.innerText.split(' ')[0];
     getRequest(touchWordCallback, '/touch/' + word);
+    getRequest(()=>{}, '/check_vocabulary/' + word);
 };
 
 function uploadFile(){
@@ -171,35 +179,47 @@ function translateCallback(response){
 };
 
 function markerButtonClick(e){
-    let word = e.target.parentElement.parentElement.id;
+    let word = e.target.parentElement.id;
     let textDisplay = document.getElementById('textDisplay');
     let text = textDisplay.innerHTML;
-    // text = text.replace('<span class="bg-warning">', '');
-    // text = text.replace('</span>', '');
-    // text = text.replace(word, '<span class="bg-warning">' + word + '</span>');
+    let words = [word, toUppercaseFirst(word)]
+    
     // TODO: crutch
-    text = replaceAll(text, '<span class="bg-warning">', '');
+    text = replaceAll(text, '<span id="targetWord" class="bg-warning">', '');
     text = replaceAll(text,'</span>', '');
-    text = replaceAll(text, word, '<span class="bg-warning">' + word + '</span>');
+    for (let i in words){
+        text = replaceAll(text, words[i], '<span id="targetWord" class="bg-warning">' + words[i] + '</span>');
+    }
     textDisplay.innerHTML = text;
+
+    let targetWord = document.getElementById('targetWord');
+    if (targetWord !== null){
+        targetWord.scrollIntoView();
+    }
 };
 
 function nameButtonClick(e){
     let word = e.target.parentElement.parentElement.id;
     word = word.replace(word[0], word[0].toUpperCase())
     getRequest(touchWordCallback, '/touch/' + word);
+    getRequest(()=>{}, '/check_vocabulary/' + word);
 };
 
 function hideWords(e){
     if (e.target.localName === 'label'){
         if (e.target.classList.contains('active') === true){
             let buttons = document.getElementsByClassName('buttonGroup');
-            let i = 0;
-            for (let button of buttons){
-                i += 1;
-                console.log(i);
+            buttons = Array.prototype.slice.call(buttons);
+            for (let i in buttons){
+                let buttonGroup = buttons[i];
+                if (buttonGroup.getElementsByClassName('btn-success').length > 0){
+                    successButtons.push(buttonGroup);
+                }
             }
-            // console.log(buttons);
+            successButtons.forEach(e => e.remove());
+        }else{
+            let canvas = document.getElementById('canvas');
+            successButtons.forEach(e => canvas.appendChild(e));
         }
     }
 };
