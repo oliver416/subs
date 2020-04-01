@@ -40,9 +40,12 @@ def parse_text(path, isfile=True):
                 for stop_word in stop_words:
                     if stop_word == word:
                         words.pop()
+        words_numbers = list()
         for word in words:
             if search('[0-9]', word):
-                words.pop(words.index(word))
+                words_numbers.append(word)
+        for word in words_numbers:
+            words.pop(words.index(word))
         for word in words:
             if word[0] == '-':
                 words[words.index(word)] = word[1:]
