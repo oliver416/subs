@@ -7,9 +7,11 @@ from django.http import HttpResponseServerError, JsonResponse
 from django.core.files.storage import FileSystemStorage
 from .modules.parser import parse_text
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from .models import UserVocabulary, Vocabulary
 from django.db.utils import IntegrityError
 
+# TODO: move to the local settings
 STORAGE_DIR = './storage/'
 # DICTIONARY_URL = 'https://www.linguee.com/english-russian/search?source=auto&query='
 # DICTIONARY_HOST = 'www.linguee.com'
@@ -23,6 +25,7 @@ def index(request):
     return render(request, 'main/index.html')
 
 
+@login_required
 def profile(request):
     username = request.user.username
     user_id = User.objects.get(username=username).id
@@ -30,6 +33,7 @@ def profile(request):
     return render(request, 'main/profile.html', {'username': username, 'words_count': words_count})
 
 
+@login_required
 def upload_file(request):
     if request.method == 'POST':
         if not request.FILES:
@@ -47,6 +51,7 @@ def upload_file(request):
     return JsonResponse({'words': words})
 
 
+@login_required
 def check_word(request, word):
     if request.method == 'GET':
         username = request.user.username
@@ -69,6 +74,7 @@ def check_word(request, word):
         return JsonResponse({'exists': response, 'word': word})
 
 
+@login_required
 def check_vocabulary_word(request, word):
     if request.method == 'GET':
         username = request.user.username
@@ -84,6 +90,7 @@ def check_vocabulary_word(request, word):
     return JsonResponse({'word': word})
 
 
+@login_required
 def touch_word(request, word):
     # TODO: here and everywhere where database is changing change get on post!
     if request.method == 'GET':
@@ -99,6 +106,7 @@ def touch_word(request, word):
     return JsonResponse({'exists': response, 'word': word})
 
 
+@login_required
 def get_text(request):
     if request.method == 'POST':
         text = request.POST['text']
@@ -106,8 +114,9 @@ def get_text(request):
         return JsonResponse({'words': words})
 
 
+@login_required
 def translate(request, word):
-    # TODO: use decorators?
+    # TODO: use decorators GET, POST?
     if request.method == 'GET':
         try:
             result = Vocabulary.objects.get(word=word).translation
@@ -116,11 +125,18 @@ def translate(request, word):
                 Vocabulary.objects.filter(word=word).update(translation=str(result))
             return JsonResponse({'translation': str(result)})
         except Vocabulary.DoesNotExist:
-            result = translate_online(word)
-            return JsonResponse({'translation': str(result)})
+            try:
+                upper_word = word[0].upper() + word[1:]
+                result = Vocabulary.objects.get(word=upper_word).translation
+                return JsonResponse({'translation': str(result)})
+            except Vocabulary.DoesNotExist:
+                result = translate_online(word)
+                return JsonResponse({'translation': str(result)})
 
 
 def translate_online(word):
+    # TODO: move to utils.py
+    # TODO: create cache table
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;'
                   'q=0.8,application/signed-exchange;v=b3',

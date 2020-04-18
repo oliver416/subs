@@ -224,6 +224,10 @@ function hideWords(e){
     }
 };
 
+function goToTheMessenger(){
+    window.location.href='/accounts/profile/files/';
+};
+
 let input = document.getElementById('inputGroupFile04');
 // TODO: to change stranges id
 input.addEventListener('change', showFileName);
