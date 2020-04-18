@@ -1,0 +1,102 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="UTF-8">
+    <title>Main page</title>
+    <link rel="stylesheet" href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/files.css' %}">
+</head>
+<body>
+<header>
+    <div class="navbar navbar-dark bg-light shadow-sm">
+      <div class="container d-flex justify-content-between">
+        <a href="#" class="navbar-brand d-flex align-items-center text-dark">
+          <strong>Files</strong>
+        </a>
+        <button class="btn btn-secondary" type="button" onclick="goBack()">Go back</button>
+      </div>
+    </div>
+  </header>
+  
+  <main role="main">
+  
+    <section class="jumbotron text-center pb-3 pt-3">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="input-group">
+              <div class="custom-file">
+                <form action="/upload_file/" method="post" enctype="multipart/form-data">{% csrf_token %}
+                  <input type="file" class="custom-file-input" id="inputGroup" aria-describedby="inputGroupFile">
+                </form>
+                <label class="custom-file-label" for="inputGroup">Choose file</label>
+              </div>
+              <div class="input-group-append">
+                <button class="btn btn-primary" type="button" id="inputGroupFile">Upload</button>
+              </div>
+            </div>
+            <div class="mt-3 text-left">
+              <button class="btn btn-secondary col-lg-12" id="allFilesButton">Show all files</button>
+              <ul class="list-group mb-3 overflow-auto file-list">
+              {% for file in files %}
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <a href="{% static storage_dir|add:file %}">{{ file }}</a>
+                <button type="button" class="close ml-auto" aria-label="Close" onclick="deleteFileClick(this)">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <br>
+              </li>
+              {% endfor %}
+              </ul>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <button class="btn btn-secondary col-lg-12" id="receiveButton">Receive all messages</button>
+            <ul class="list-group bg-light overflow-auto message-list" data-spy="scroll">
+              {% for message in messages %}
+                {% if message.user == current_user %}
+                  <li class="list-group-item list-group-item-success text-left">
+                    {{ message.user }} <span>{{ message.date }}</span>
+                    <button type="button" class="close ml-auto" aria-label="Close" onclick="deleteMessageClick(this)">
+                      <span aria-hidden="true">&times;</span>
+                    </button> 
+                    <br>
+                    <strong>{{ message.text }}</strong>
+                  </li>
+                {% else %}
+                  <li class="list-group-item list-group-item-danger text-right">
+                    {{ message.user }} {{ message.date }} 
+                    <br>
+                    <strong>{{ message.text }}</strong> 
+                  </li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+            <div class="input-group mt-3">
+              <textarea class="form-control" aria-label="Send message"></textarea>
+              <div class="input-group-prepend">
+                <button class="btn btn-primary" id="sendButton">Send message</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-12 mt-3 text-success" id="statusBar">
+          </div>
+        </div>
+      </div>
+    </section>
+  
+  </main>
+  
+  <footer class="text-muted">
+    <div class="container">
+      <p class="float-right">
+        <a href="#">Back to top</a>
+      </p>
+      <p>Files is &copy; 452 Lab, 2020.</p>
+    </div>
+  </footer>
+  <script src="{% static 'jquery/jquery-3.4.1.slim.min.js' %}"></script>
+  <script src="{% static 'main/js/files.js' %}"></script>
+</body>
+</html>
