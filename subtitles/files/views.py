@@ -1,61 +1,49 @@
 import os
-import datetime
-import pytz
-from django.shortcuts import render, render_to_response
-from django.http import HttpResponseServerError, JsonResponse
+from django.shortcuts import render
+from django.http import JsonResponse
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_GET, require_POST
 from .models import Messages
 from .utils import get_files
 
-STORAGE_DIR = '/main/storage/'
+STORAGE_DIR = settings.STORAGE_DIR
 
 
 @login_required
+@require_GET
 def index(request):
-    # file_directory = settings.BASE_DIR + settings.STATIC_URL + STORAGE_DIR
-    # file_list = os.listdir(file_directory)
     file_list = get_files(STORAGE_DIR)
     messages = Messages.objects.all()
-    users = Messages.objects.values('user')
-    user_list = list(set([i['user'] for i in users]))
-    current_user = request.META['USER']
+    current_user = request.user.username
     messages = [{'text': msg.text, 'user': msg.user, 'date': msg.date.strftime('%c')} for msg in messages]
     return render(request, 'main/files.html', {'files': file_list, 'storage_dir': STORAGE_DIR,
                                                'current_user': current_user, 'messages': messages})
 
 
 @login_required
+@require_POST
 def upload_file(request):
-    if request.method == 'POST':
-        if not request.FILES:
-            return HttpResponseServerError('''File wasn't chosen''')
-    else:
-        HttpResponseServerError('''Wrong request type''')
     file = request.FILES['file']
     fs = FileSystemStorage()
     file_directory = settings.BASE_DIR + settings.STATIC_URL + STORAGE_DIR
     file_path = file_directory + file.name
     fs.save(file_path, file)
-    file_list = get_files(STORAGE_DIR)
     return JsonResponse({'uploaded': True, 'file_name': file.name})
-    # return re(request, 'main/index.html', {'files': file_list, 'storage_dir': STORAGE_DIR})
 
 
 @login_required
+@require_GET
 def check_files(request):
-    if request.method != 'GET':
-        return HttpResponseServerError('''Wrong request type''')
     file_list = get_files(STORAGE_DIR)
     return JsonResponse({'files': file_list})
 
 
 @login_required
+@require_POST
 def delete_file(request):
-    if request.method != 'POST':
-        return HttpResponseServerError('''Wrong request type''')
     try:
         file_name = request.POST['file_name']
         file_directory = settings.BASE_DIR + settings.STATIC_URL + STORAGE_DIR
@@ -67,22 +55,20 @@ def delete_file(request):
 
 
 @login_required
+@require_POST
 def send_message(request):
-    if request.method != 'POST':
-        return HttpResponseServerError('''Wrong request type''')
     text = request.POST['text']
     date = timezone.now()
-    user = request.META['USER']
+    user = request.user.username
     Messages.objects.create(text=text, user=user, date=date)
     return JsonResponse({'saved': True, 'date': date.strftime('%c'), 'user': user, 'message': text})
 
 
 @login_required
+@require_POST
 def delete_message(request):
-    if request.method != 'POST':
-        return HttpResponseServerError('''Wrong request type''')
     message = request.POST['message']
-    user = request.META['USER']
+    user = request.user.username
     try:
         messages = Messages.objects.filter(text=message, user=user)
         [msg.delete() for msg in messages]
@@ -92,9 +78,8 @@ def delete_message(request):
 
 
 @login_required
+@require_GET
 def get_messages(request):
-    if request.method != 'GET':
-        return HttpResponseServerError('''Wrong request type''')
     try:
         messages = Messages.objects.all()
         all_messages = [{'user': msg.user, 'date': msg.date.strftime('%c'), 'text': msg.text} for msg in messages]
@@ -104,9 +89,8 @@ def get_messages(request):
 
 
 @login_required
+@require_GET
 def get_current_user(request):
-    if request.method != 'GET':
-        return HttpResponseServerError('''Wrong request type''')
-    current_user = request.META['USER']
+    current_user = request.user.username
     if current_user:
         return JsonResponse({'current_user': current_user})

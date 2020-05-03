@@ -1,10 +1,13 @@
+const spinner = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+Loading...`;
+
 let currentUser = '';
 
 function showFileName(e){
     let fileName = e.target.files[0].name;
     let label = document.getElementsByClassName('custom-file-label')[0];
     label.innerHTML = fileName;
-};
+}
 
 function getCookie(name) {
     let cookie = document.cookie
@@ -13,7 +16,7 @@ function getCookie(name) {
             return cookie.split('=')[1].toString()
         }
     }
-};
+}
 
 function getRequest(callback, url, context){
     let xhr = new XMLHttpRequest();
@@ -26,7 +29,7 @@ function getRequest(callback, url, context){
     });
     xhr.open("GET", url, true);
     xhr.send(null);
-};
+}
 
 function postRequest(callback, url, context){
     let xhr = new XMLHttpRequest();
@@ -45,17 +48,16 @@ function postRequest(callback, url, context){
     }
     xhr.open("POST", url, true);
     xhr.send(formData);
-};
+}
 
 function getCurrentUserCallback(data){
     let json = JSON.parse(data);
     currentUser = json['current_user'];
-};
+}
 
 function getCurrentUser(){
-    // TODO: crutch
     getRequest(getCurrentUserCallback, '/accounts/profile/files/get_current_user/');
-};
+}
 
 function addFileIntoList(fileArray){
     let fileList = document.getElementsByClassName('file-list')[0];
@@ -74,7 +76,7 @@ function addFileIntoList(fileArray){
             newFile.scrollIntoView();
         }
     }
-};
+}
 
 function addMessageIntoList(messageArray){
     let messageList = document.getElementsByClassName('message-list')[0];
@@ -105,33 +107,37 @@ function addMessageIntoList(messageArray){
         }
     }
     
-};
+}
 
 function saveFileCallback(data){
+    let button = document.getElementById('inputGroupFile');
     let json = JSON.parse(data);
     if (json['uploaded'] === true){
         addFileIntoList([json['file_name']]);
     }
-};
+    button.innerHTML = 'Upload';
+}
 
 function uploadFile(){
+    let button = document.getElementById('inputGroupFile');
     let file = document.getElementById("inputGroup").files[0];
     let context = [['file', file] , ['csrfmiddlewaretoken', getCookie('csrftoken')]]; 
+    button.innerHTML = spinner;
     postRequest(saveFileCallback, '/accounts/profile/files/upload_file/', context);
-};
+}
 
 function sendMessageCallback(data){
     let json = JSON.parse(data);
     if (json['saved'] === true){
         addMessageIntoList([{'user': json['user'], 'date': json['date'], 'text':json['message']}]);
     }
-};
+}
 
 function sendMessage(){
     let textArea = document.getElementsByClassName('form-control')[0];
     let context = [['text', textArea.value] , ['csrfmiddlewaretoken', getCookie('csrftoken')]];
     postRequest(sendMessageCallback, '/accounts/profile/files/send_message/', context);
-};
+}
 
 function deleteFileCallback(data){
     let json = JSON.parse(data);
@@ -141,7 +147,7 @@ function deleteFileCallback(data){
     }else{
         statusBar.innerText = 'Error deleting file'
     }
-};
+}
 
 function deleteFileClick(e){
     let parentNode = e.parentNode;
@@ -149,18 +155,18 @@ function deleteFileClick(e){
     let context = [['file_name', file_name], ['csrfmiddlewaretoken', getCookie('csrftoken')]];
     postRequest(deleteFileCallback, '/accounts/profile/files/delete_file/', context);
     parentNode.remove();
-};
+}
 
 function allFilesCallback(data){
     let json = JSON.parse(data);
     let fileList = document.getElementsByClassName('file-list')[0];
     fileList.innerText = '';
     addFileIntoList(json['files'])
-};
+}
 
 function allFilesButtonClick(){
     getRequest(allFilesCallback, '/accounts/profile/files/check_files/');
-};
+}
 
 function deleteMessageCallback(data){
     let json = JSON.parse(data);
@@ -170,7 +176,7 @@ function deleteMessageCallback(data){
     }else{
         statusBar.innerText = 'Error deleting message'
     }
-};
+}
 
 function deleteMessageClick(e){
     let parentNode = e.parentNode;
@@ -178,26 +184,26 @@ function deleteMessageClick(e){
     let context = [['message', message], ['csrfmiddlewaretoken', getCookie('csrftoken')]];
     postRequest(deleteMessageCallback, '/accounts/profile/files/delete_message/', context);
     parentNode.remove();
-};
+}
 
 function allMessagesCallback(data){
     let json = JSON.parse(data);
     let messageList = document.getElementsByClassName('message-list')[0];
     messageList.innerText = '';
     addMessageIntoList(json['messages']);
-};
+}
 
 function allMessagesButtonClick(){
     getRequest(allMessagesCallback, '/accounts/profile/files/get_messages/');
-};
+}
 
 if (currentUser === ''){
     getCurrentUser();
 };
 
-function goBack(){
-    window.location.href='/accounts/profile/';
-};
+function goTo(data){
+    window.location.href=data;
+}
 
 let input = document.getElementById('inputGroup');
 input.addEventListener('change', showFileName);
@@ -214,4 +220,4 @@ allFilesButton.addEventListener('click', allFilesButtonClick);
 let allMessagesButton = document.getElementById('receiveButton');
 allMessagesButton.addEventListener('click', allMessagesButtonClick);
 
-// TODO: edit layout (including medium screens)
+// TODO[usability]: edit layout (including medium screens)

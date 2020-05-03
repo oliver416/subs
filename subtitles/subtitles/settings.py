@@ -131,6 +131,12 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
+# Dictionary settings
+# STORAGE_DIR = './storage/'
+STORAGE_DIR = '/main/storage/'
+DICTIONARY_URL = 'https://dictionary.cambridge.org/dictionary/english-russian/'
+DICTIONARY_HOST = 'dictionary.cambridge.org'
+
 # AllAuth settings
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`

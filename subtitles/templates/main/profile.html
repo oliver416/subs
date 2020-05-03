@@ -15,7 +15,7 @@
             <a href="/" class="navbar-brand d-flex align-items-center">
               <strong>Subtitles</strong>
             </a>
-            <button class="btn btn-secondary" type="button" onclick="goToTheMessenger()">Go to the messenger</button>
+            <button class="btn btn-secondary" type="button" onclick="goTo('/accounts/profile/files/')">Go to the messenger</button>
             <div class="btn-group-toggle hideWords" data-toggle="buttons">
               <label class="btn btn-light">
                 <input type="checkbox" checked>Hide known words
@@ -33,17 +33,6 @@
 
           <div class="row bg-light m-0">
               <div class="col-lg-3 ml-auto mr-auto pt-3 bg-light">
-                <div class="input-group">
-                    <div class="custom-file">
-                      <form action="/upload_file/" method="post" enctype="multipart/form-data">{% csrf_token %}
-                        <input type="file" class="custom-file-input" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04">
-                      </form>
-                      <label class="custom-file-label" for="inputGroupFile04">Choose file</label>
-                    </div>
-                    <div class="input-group-append">
-                      <button class="btn btn-primary" type="button" id="inputGroupFileAddon04">Upload</button>
-                    </div>
-                </div>
                 <div class="stats pt-3">
                   <div>Words in user vocabulary: <span class="text-primary font-weight-bold userWords">{{ words_count }}</span></div>
                   <div>Words in text: <span class="text-dark font-weight-bold allWords">0</span></div>
