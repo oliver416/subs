@@ -10,6 +10,7 @@ def parse_text(path, isfile=True):
 
     def create_list_rows(data, stop_rows):
         rows = list()
+        # TODO[refactoring]: too much loops
         if isfile is True:
             file = open(str(data), 'r')
             for row in file:
@@ -29,6 +30,7 @@ def parse_text(path, isfile=True):
 
     def create_word_list(row_list, stop_words, stop_punctuation, apostrophe=APOSTROPHE):
         words = list()
+        # TODO[refactoring]: too much loops
         for row in row_list:
             for word in row:
                 for stop_mark in stop_punctuation:
